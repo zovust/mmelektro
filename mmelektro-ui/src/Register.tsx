@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -38,7 +40,7 @@ const RegisterPage = () => {
     setIsLoading(true);
     setSuccess('');
     try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

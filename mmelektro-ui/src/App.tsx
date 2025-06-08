@@ -51,7 +51,11 @@ interface HistoryItem {
   };
   results: DiagnosisDisplayResult[];
   created_at: string;
+  symptoms: number[];
 }
+
+// Gunakan .env.local dan VITE_API_BASE_URL untuk endpoint API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 const App = () => {
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
@@ -63,8 +67,6 @@ const App = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState('');
-
-  const API_BASE_URL = 'http://localhost:3001/api';
 
   // Load initial data
   useEffect(() => {
@@ -194,6 +196,12 @@ const App = () => {
     }
   };
 
+  // Fungsi untuk mapping id gejala ke nama
+  const getSymptomName = (id: string | number) => {
+    const found = symptoms.find(sym => sym.id === id);
+    return found ? found.name : id;
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
@@ -261,10 +269,10 @@ const App = () => {
                         {formatDate(item.created_at)}
                       </div>
                       <div className="text-sm">
-                        <strong>Gejala:</strong> {item.results.map(r => r.name).join(', ')}
+                        <strong>Gejala:</strong> {item.symptoms.map(id => getSymptomName(id)).join(', ')}
                       </div>
                       <div className="text-sm mt-1">
-                        <strong>Hasil:</strong> {item.results[0]?.name} ({item.results[0]?.percentage.toFixed(1)}%)
+                        <strong>Hasil:</strong> {item.results[0]?.name} ({item.results[0]?.percentage?.toFixed(1)}%)
                       </div>
                     </div>
                   ))

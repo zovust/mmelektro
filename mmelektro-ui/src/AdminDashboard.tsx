@@ -46,6 +46,9 @@ interface DiagnosisReport {
   notes?: string;
 }
 
+// Gunakan .env.local dan VITE_API_BASE_URL untuk endpoint API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,12 +60,13 @@ const AdminDashboard = () => {
   const [reports, setReports] = useState<DiagnosisReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [symptomsList, setSymptomsList] = useState<{id: string|number, name: string}[]>([]);
 
   // Fetch reports from API
   const fetchReports = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/history', {
+      const response = await fetch(`${API_BASE_URL}/history`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,6 +87,11 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchReports();
+    // Fetch symptoms for mapping
+    fetch(`${API_BASE_URL}/symptoms`)
+      .then(res => res.json())
+      .then(data => setSymptomsList(data.map((s: any) => ({ id: s.id, name: s.name }))))
+      .catch(() => setSymptomsList([]));
   }, []);
 
   // Statistik dashboard
@@ -134,10 +143,16 @@ const AdminDashboard = () => {
     return matchesSearch && matchesDate;
   });
 
+  // Fungsi untuk mapping id gejala ke nama
+  const getSymptomName = (id: string | number) => {
+    const found = symptomsList.find(sym => sym.id === id);
+    return found ? found.name : id;
+  };
+
   const handleDeleteReport = async (id: number) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/history/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/history/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -163,7 +178,7 @@ const AdminDashboard = () => {
       return;
     }
     try {
-      await fetch('http://localhost:3001/api/history/bulk-delete', {
+      await fetch(`${API_BASE_URL}/history/bulk-delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -605,9 +620,9 @@ const AdminDashboard = () => {
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
                             {Array.isArray(report.symptoms) && report.symptoms.length > 0
-                              ? report.symptoms.map(s => (
+                              ? report.symptoms.map((s: string|number) => (
                                   <div key={s} className="mb-1">
-                                    <span className="font-medium text-blue-600">{s}</span>
+                                    <span className="font-medium text-blue-600">{getSymptomName(s)}</span>
                                   </div>
                                 ))
                               : <span>-</span>

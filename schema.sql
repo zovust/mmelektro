@@ -1,62 +1,89 @@
--- Buat database
+-- Create tables for fan diagnosis system
 CREATE DATABASE sistem_diagnosa_kipas;
 USE sistem_diagnosa_kipas;
 
--- Tabel user
-CREATE TABLE user (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+-- Users table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     nama_lengkap VARCHAR(100) NOT NULL,
-    role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
-    tanggal_dibuat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tanggal_diperbarui TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    role VARCHAR(10) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabel kerusakan
+-- Damages table
 CREATE TABLE kerusakan (
     id VARCHAR(10) PRIMARY KEY,
     nama_kerusakan VARCHAR(100) NOT NULL,
     solusi TEXT NOT NULL,
-    tanggal_dibuat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tanggal_diperbarui TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabel gejala
+-- Symptoms table
 CREATE TABLE gejala (
     id VARCHAR(10) PRIMARY KEY,
     nama_gejala VARCHAR(200) NOT NULL,
     deskripsi TEXT,
-    tanggal_dibuat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tanggal_diperbarui TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabel aturan diagnosa
+-- Diagnosis rules table
 CREATE TABLE aturan_diagnosa (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_gejala VARCHAR(10) NOT NULL,
-    id_kerusakan VARCHAR(10) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    id_gejala VARCHAR(10) NOT NULL REFERENCES gejala(id) ON DELETE CASCADE,
+    id_kerusakan VARCHAR(10) NOT NULL REFERENCES kerusakan(id) ON DELETE CASCADE,
     probabilitas DECIMAL(3,2) NOT NULL DEFAULT 0.00,
-    tanggal_dibuat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    tanggal_diperbarui TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_gejala) REFERENCES gejala(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_kerusakan) REFERENCES kerusakan(id) ON DELETE CASCADE,
-    UNIQUE KEY unik_gejala_kerusakan (id_gejala, id_kerusakan)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(id_gejala, id_kerusakan)
 );
 
--- Tabel riwayat diagnosa
+-- Diagnosis history table
 CREATE TABLE riwayat_diagnosa (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_user INT NOT NULL,
-    gejala TEXT NULL,
-    hasil JSON NOT NULL,
-    tanggal_diagnosa TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    catatan TEXT,
-    FOREIGN KEY (id_user) REFERENCES user(id) ON DELETE CASCADE
+    id SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    gejala TEXT,
+    hasil JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    catatan TEXT
 );
 
--- Data awal kerusakan
+-- Create updated_at trigger function
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_kerusakan_updated_at
+    BEFORE UPDATE ON kerusakan
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_gejala_updated_at
+    BEFORE UPDATE ON gejala
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_aturan_diagnosa_updated_at
+    BEFORE UPDATE ON aturan_diagnosa
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert initial data
 INSERT INTO kerusakan (id, nama_kerusakan, solusi) VALUES
 ('K1', 'Dinamo', 'Pergantian Dinamo'),
 ('K2', 'Kapasitor', 'Pergantian Kapasitor'),
@@ -64,7 +91,6 @@ INSERT INTO kerusakan (id, nama_kerusakan, solusi) VALUES
 ('K4', 'Kabel putus', 'Service Kabel'),
 ('K5', 'Sekring', 'Pergantian Sekring');
 
--- Data awal gejala
 INSERT INTO gejala (id, nama_gejala, deskripsi) VALUES
 ('G1', 'Kipas Berputar Lambat', 'Kipas berputar dengan kecepatan lebih lambat dari normal'),
 ('G2', 'Mesin Berdengung', 'Terdengar suara dengung dari mesin kipas'),
@@ -78,7 +104,6 @@ INSERT INTO gejala (id, nama_gejala, deskripsi) VALUES
 ('G10', 'Kipas Tidak Berputar', 'Kipas dalam kondisi hidup namun tidak berputar'),
 ('G11', 'Salah Satu Speed Mati', 'Salah satu kecepatan kipas tidak berfungsi');
 
--- Data awal aturan diagnosa
 INSERT INTO aturan_diagnosa (id_gejala, id_kerusakan, probabilitas) VALUES
 ('G1', 'K1', 0.00), ('G1', 'K2', 1.00), ('G1', 'K3', 1.00), ('G1', 'K4', 0.00), ('G1', 'K5', 0.00),
 ('G2', 'K1', 1.00), ('G2', 'K2', 0.00), ('G2', 'K3', 1.00), ('G2', 'K4', 0.00), ('G2', 'K5', 0.00),
@@ -92,9 +117,6 @@ INSERT INTO aturan_diagnosa (id_gejala, id_kerusakan, probabilitas) VALUES
 ('G10', 'K1', 0.00), ('G10', 'K2', 0.00), ('G10', 'K3', 1.00), ('G10', 'K4', 1.00), ('G10', 'K5', 1.00),
 ('G11', 'K1', 1.00), ('G11', 'K2', 1.00), ('G11', 'K3', 0.00), ('G11', 'K4', 1.00), ('G11', 'K5', 0.00);
 
--- Buat admin default
-INSERT INTO user (username, password, email, nama_lengkap, role) VALUES
-('admin', '$2a$12$6n8IobgL8lUZkcaI22nGvO/vt6qjvBLbpKpkRXR9OZ4qz9m5M7TL2', 'admin@mmelektro.com', 'Administrator', 'admin');
-
--- Ubah tipe data kolom gejala pada tabel riwayat_diagnosa
-ALTER TABLE riwayat_diagnosa MODIFY gejala TEXT NULL;
+-- Create default admin user (password: admin123)
+INSERT INTO users (username, password, email, nama_lengkap, role) VALUES
+('admin', '$2a$12$6n8IobgL8lUZkcaI22nGvO/vt6qjvBLbpKpkRXR9OZ4qz9m5M7TL2', 'admin@mmelektro.com', 'Administrator', 'admin'); 

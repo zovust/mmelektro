@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Fan, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import unpamLogo from './assets/unpam.png';
 
+// Gunakan .env.local dan VITE_API_BASE_URL untuk endpoint API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -44,7 +47,7 @@ const LoginPage = () => {
     setIsLoading(true);
     setErrors({});
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
