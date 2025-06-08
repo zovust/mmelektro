@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Calculator, Fan, AlertTriangle, CheckCircle, Database, History, Settings, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calculator, AlertTriangle, CheckCircle, Database, History, LogOut } from 'lucide-react';
 import unpamLogo from './assets/unpam.png';
 
 // Tambahkan tipe data
@@ -62,7 +62,6 @@ const App = () => {
   const [damages, setDamages] = useState<Damage[]>([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [results, setResults] = useState<DiagnosisDisplay | null>(null);
-  const [showCalculation, setShowCalculation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -134,7 +133,6 @@ const App = () => {
         : [...prev, symptomId]
     );
     setResults(null);
-    setShowCalculation(false);
     setError('');
   };
 
@@ -164,7 +162,6 @@ const App = () => {
         const data = await response.json();
         // Expecting data to have { results: [], calculation: {} }
         setResults(data && data.results && data.calculation ? data : null);
-        setShowCalculation(true);
         loadHistory(); // Refresh history
       } else {
         const errorData = await response.json();
@@ -181,7 +178,6 @@ const App = () => {
   const resetDiagnosis = () => {
     setSelectedSymptoms([]);
     setResults(null);
-    setShowCalculation(false);
     setError('');
   };
 
@@ -263,7 +259,7 @@ const App = () => {
               </h3>
               <div className="max-h-64 overflow-y-auto space-y-3">
                 {history.length > 0 ? (
-                  history.map((item, index) => (
+                  history.map((item) => (
                     <div key={item.id} className="bg-white p-4 rounded border">
                       <div className="text-sm text-gray-600 mb-2">
                         {formatDate(item.created_at)}
@@ -345,7 +341,7 @@ const App = () => {
                   Hasil Diagnosa
                 </h3>
                 <div className="space-y-3">
-                  {results.results.map((result, index) => (
+                  {results.results.map((result) => (
                     <div key={result.code} className={`p-4 rounded-lg border mb-2 ${result.percentage > 0 ? 'bg-white border-green-200' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex justify-between items-center">
                         <div>

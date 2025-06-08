@@ -1,26 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  Users, 
-  AlertTriangle, 
-  TrendingUp, 
-  Calendar,
-  Search,
-  Filter,
-  Download,
-  Eye,
-  Trash2,
-  RefreshCw,
-  Settings,
-  LogOut,
-  Fan,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Printer,
-  UserX,
-  AlertTriangleIcon
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BarChart3, TrendingUp, RefreshCw, Settings, LogOut, Fan, Printer, UserX, AlertTriangleIcon, Search } from 'lucide-react';
 
 interface DiagnosisResult {
   code: string;
@@ -31,18 +10,22 @@ interface DiagnosisResult {
   percentage: number;
 }
 
-interface UserInfo {
-  name?: string;
-  email?: string;
-  timestamp?: string;
-}
-
 interface DiagnosisReport {
   id: number;
-  symptoms: string[];
+  symptoms: (string|number)[];
   results: DiagnosisResult[];
-  diagnosis_date: string;
-  user_info: UserInfo;
+  created_at?: string;
+  diagnosis_date?: string;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    full_name: string;
+  };
+  user_info?: {
+    name?: string;
+    email?: string;
+  };
   notes?: string;
 }
 
@@ -58,7 +41,6 @@ const AdminDashboard = () => {
   const [reportToDelete, setReportToDelete] = useState<number | null>(null);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [reports, setReports] = useState<DiagnosisReport[]>([]);
-  const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [symptomsList, setSymptomsList] = useState<{id: string|number, name: string}[]>([]);
 
@@ -73,15 +55,12 @@ const AdminDashboard = () => {
       });
       if (!response.ok) {
         setReports([]);
-        setLoading(false);
         return;
       }
       const data = await response.json();
       setReports(Array.isArray(data) ? data : []);
-      setLoading(false);
     } catch (error) {
       setReports([]);
-      setLoading(false);
     }
   };
 
@@ -121,7 +100,7 @@ const AdminDashboard = () => {
       report.id.toString().includes(searchTerm);
     
     const matchesDate = filterDate === 'all' || (() => {
-      const reportDate = new Date(report.diagnosis_date);
+      const reportDate = new Date(report.diagnosis_date || '');
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -233,7 +212,7 @@ const AdminDashboard = () => {
               <span class="label">Email:</span> ${report.user_info?.email || '-'}
             </div>
             <div class="section">
-              <span class="label">Tanggal & Waktu:</span> ${new Date(report.diagnosis_date).toLocaleDateString('id-ID')} ${new Date(report.diagnosis_date).toLocaleTimeString('id-ID')}
+              <span class="label">Tanggal & Waktu:</span> ${new Date(report.diagnosis_date || '').toLocaleDateString('id-ID')} ${new Date(report.diagnosis_date || '').toLocaleTimeString('id-ID')}
             </div>
           </div>
           <div class="section">
@@ -316,7 +295,7 @@ const AdminDashboard = () => {
                 <td>${report.id}</td>
                 <td>${report.user_info?.name || 'Anonim'}</td>
                 <td>${report.user_info?.email || '-'}</td>
-                <td>${new Date(report.diagnosis_date).toLocaleDateString('id-ID')}</td>
+                <td>${new Date(report.diagnosis_date || '').toLocaleDateString('id-ID')}</td>
                 <td>${report.results[0]?.name}</td>
                 <td>${report.results[0]?.percentage.toFixed(1)}%</td>
               </tr>
@@ -486,7 +465,7 @@ const AdminDashboard = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(report.diagnosis_date).toLocaleDateString('id-ID')}
+                          {new Date(report.diagnosis_date || '').toLocaleDateString('id-ID')}
                         </td>
                       </tr>
                     ))}
@@ -646,8 +625,8 @@ const AdminDashboard = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div>{report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('id-ID') : (report.created_at ? new Date(report.created_at).toLocaleDateString('id-ID') : '-')}</div>
-                          <div>{report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleTimeString('id-ID') : (report.created_at ? new Date(report.created_at).toLocaleTimeString('id-ID') : '-')}</div>
+                          <div>{new Date(report.diagnosis_date || '').toLocaleDateString('id-ID')}</div>
+                          <div>{new Date(report.diagnosis_date || '').toLocaleTimeString('id-ID')}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button

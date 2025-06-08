@@ -1,5 +1,4 @@
-import React from 'react';
-import { Fan, ArrowRightCircle } from 'lucide-react';
+import { ArrowRightCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import unpamLogo from './assets/unpam.png';
 

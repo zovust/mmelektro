@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Fan, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import unpamLogo from './assets/unpam.png';
 
 // Gunakan .env.local dan VITE_API_BASE_URL untuk endpoint API
