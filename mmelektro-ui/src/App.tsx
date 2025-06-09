@@ -210,7 +210,7 @@ const App = () => {
                 <h1 className="text-2xl font-bold">Sistem Diagnosa Kipas Angin</h1>
                 <p className="text-blue-100 flex items-center gap-2">
                   <Database className="w-4 h-4" />
-                  Metode Naive Bayes Classifier - Database MySQL
+                  Metode Naive Bayes Classifier - MMELEKTRO
                 </p>
               </div>
             </div>
@@ -426,8 +426,7 @@ const App = () => {
           {/* Footer Info */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="text-sm text-gray-500 text-center">
-              <p>Sistem Diagnosa Kipas Angin menggunakan algoritma Naive Bayes Classifier</p>
-              <p className="mt-1">Data disimpan dalam database MySQL untuk analisis dan pembelajaran</p>
+              <p>SISTEM PAKAR DIAGNOSA KERUSAKAN PADA KIPAS ANGIN MENGGUNAKAN METODE NAIVE BAYES CLASSIFIER - NIBROS ABROR</p>
             </div>
           </div>
         </div>
